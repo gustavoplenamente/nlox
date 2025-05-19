@@ -11,7 +11,7 @@ public class Scanner : IScanner
     private List<Token> Tokens { get; } = [];
     private int Start { get; set; }
     private int Current { get; set; }
-    private int Line { get; set; } = 1;
+    public int Line { get; private set; } = 1;
     private Dictionary<string, TokenKind> KeywordsByIdentifier { get; } = new()
     {
         { "and", TokenKind.And },
@@ -81,6 +81,7 @@ public class Scanner : IScanner
 
             case '/':
                 if (Match('/')) ScanComment();
+                else if (Match('*')) ScanBlockComment();
                 else AddToken(TokenKind.Slash);
                 break;
 
@@ -119,6 +120,30 @@ public class Scanner : IScanner
     {
         while (Peek() != '\n' && !IsAtEnd())
             Advance();
+    }
+
+    private void ScanBlockComment()
+    {
+        // Consume *
+        Advance();
+
+        while (!IsAtEnd())
+        {
+            if (Peek() == '*' && PeekNext() == '/')
+                break;
+            if (Peek() == '/' && PeekNext() == '*')
+                ScanBlockComment();
+
+            if (Peek() == '\n') Line++;
+            Advance();
+        }
+
+        if (IsAtEnd())
+            return;
+
+        // Consume '*/'
+        Advance();
+        Advance();
     }
 
     private void ScanString()

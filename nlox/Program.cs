@@ -21,7 +21,7 @@ return;
 void RunFile(string scriptPath)
 {
     var text = File.ReadAllText(scriptPath);
-    var lox = new Lox(new Scanner(text));
+    var lox = new Lox(new Scanner(text), new TokenWriter());
     lox.Run();
     if (hadError) Environment.Exit(65);
 }
@@ -34,7 +34,7 @@ void RunPrompt()
         var input = Console.ReadLine();
         if (input is null) break;
 
-        var lox = new Lox(new Scanner(input));
+        var lox = new Lox(new Scanner(input), new TokenWriter());
         lox.Run();
         hadError = false;
     }

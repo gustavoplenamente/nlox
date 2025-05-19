@@ -4,10 +4,12 @@ public class Lox
 {
     private static bool HadError { get; set; }
     private IScanner Scanner { get; }
-    
-    public Lox(IScanner scanner)
+    private IWriter Writer { get; }
+
+    public Lox(IScanner scanner, IWriter writer)
     {
         Scanner = scanner;
+        Writer = writer;
     }
 
     public void Run()
@@ -16,7 +18,7 @@ public class Lox
 
         foreach (var token in tokens)
         {
-            Console.WriteLine(token);
+            Writer.Write(token);
         }
     }
 
