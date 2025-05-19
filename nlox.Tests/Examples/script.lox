@@ -1,0 +1,22 @@
+fun sum(a, b) {
+    return a + b;
+}
+
+// this is a comment
+
+var three = sum(1, 2);
+var threeName = "three";
+
+/*
+ * This is a block comment
+ *
+ * /* This
+    * is a nested
+    * block comment */
+ * 
+ */
+
+var num = three;
+while(num > 0) {
+    print num;
+}
