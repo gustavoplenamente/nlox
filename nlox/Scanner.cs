@@ -61,15 +61,8 @@ public class Scanner : IScanner
                 break;
 
             case '/':
-                if (Match('/')) // this is a comment
-                {
-                    while(Peek() != '\n' && !IsAtEnd())
-                        Advance();
-                }
-                else
-                {
-                    AddToken(TokenKind.Slash);
-                }
+                if (Match('/')) ScanComment();
+                else AddToken(TokenKind.Slash);
                 break;
 
             case ' ':
@@ -95,6 +88,12 @@ public class Scanner : IScanner
                 Lox.Error(Line, $"Unexpected character: '{c}'.");
                 break;
         }
+    }
+
+    private void ScanComment()
+    {
+        while (Peek() != '\n' && !IsAtEnd())
+            Advance();
     }
 
     private void ScanString()
