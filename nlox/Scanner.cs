@@ -46,21 +46,120 @@ public class Scanner : IScanner
             case '+': AddToken(TokenKind.Plus); break;
             case ';': AddToken(TokenKind.Semicolon); break;
             case '*': AddToken(TokenKind.Star); break;
+
+            case '!':
+                AddToken(Match('=') ? TokenKind.BangEqual : TokenKind.Bang);
+                break;
+            case '=':
+                AddToken(Match('=') ? TokenKind.EqualEqual : TokenKind.Equal);
+                break;
+            case '>':
+                AddToken(Match('=') ? TokenKind.GreaterEqual : TokenKind.Greater);
+                break;
+            case '<':
+                AddToken(Match('=') ? TokenKind.LessEqual : TokenKind.Less);
+                break;
             
+            case '/':
+                if (Match('/')) // this is a comment
+                {
+                    while(Peek() != '\n' && !IsAtEnd())
+                        Advance();
+                }
+                else
+                {
+                    AddToken(TokenKind.Slash);
+                }
+                break;
+
+            case ' ':
+            case '\r':
+            case '\t':
+                break;
+
+            case '\n':
+                _line++;
+                break;
+
+            case '"':
+                ScanString();
+                break;
+
             default:
+                if (IsDigit(c))
+                {
+                    ScanNumber();
+                    break;
+                }
+
                 Lox.Error(_line, $"Unexpected character: '{c}'.");
                 break;
         }
     }
 
+    private void ScanString()
+    {
+        while (Peek() != '"' && !IsAtEnd())
+        {
+            if (Peek() == '\n') _line++;
+            Advance();
+        }
+
+        if (IsAtEnd())
+        {
+            Lox.Error(_line, $"Unterminated string.");
+            return;
+        }
+
+        // Capture the closing quotes
+        Advance();
+
+        // Get text inside quotes
+        var str = _source.Substring(_start + 1, _current - _start - 1);
+        AddToken(TokenKind.String, str);
+    }
+
+    private void ScanNumber()
+    {
+        while (IsDigit(Peek()))
+            Advance();
+
+        if (Peek() == '.' && IsDigit(PeekNext()))
+        {
+            // Consume the dot
+            Advance();
+
+            while (IsDigit(Peek()))
+                Advance();
+        }
+
+        var numStr = _source.Substring(_start, _current - _start);
+        var num = double.Parse(numStr);
+        AddToken(TokenKind.Number, num);
+    }
+
     private void AddToken(TokenKind kind, object? literal = null)
     {
-        var text = _source.Substring(_start, _current);
+        var text = _source.Substring(_start, _current - _start);
         var token = new Token(kind, text, literal, _line);
         _tokens.Add(token);
     }
 
+    private bool Match(char expected)
+    {
+        if (IsAtEnd()) return false;
+        if (Peek() != expected) return false;
+
+        Advance();
+        return true;
+    }
+
     private char Advance() => _source[_current++];
 
+    private char Peek() => IsAtEnd() ? '\0' : _source[_current];
+    private char PeekNext() => _current + 1 >= _source.Length ? '\0' : _source[_current + 1];
+
     private bool IsAtEnd() => _current >= _source.Length;
+
+    private static bool IsDigit(char c) => c is >= '0' and <= '9';
 }
