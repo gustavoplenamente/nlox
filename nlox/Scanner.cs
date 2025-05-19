@@ -59,7 +59,7 @@ public class Scanner : IScanner
             case '<':
                 AddToken(Match('=') ? TokenKind.LessEqual : TokenKind.Less);
                 break;
-            
+
             case '/':
                 if (Match('/')) // this is a comment
                 {
