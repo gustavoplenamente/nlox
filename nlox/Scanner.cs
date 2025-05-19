@@ -7,27 +7,27 @@ public interface IScanner
 
 public class Scanner : IScanner
 {
-    private readonly string _source;
-    private readonly List<Token> _tokens = [];
-    private int _start = 0;
-    private int _current = 0;
-    private int _line = 1;
+    private string Source { get; }
+    private List<Token> Tokens { get; } = [];
+    private int Start { get; set; }
+    private int Current { get; set; }
+    private int Line { get; set; } = 1;
 
     public Scanner(string source)
     {
-        _source = source;
+        Source = source;
     }
 
     public List<Token> ScanTokens()
     {
         while (!IsAtEnd())
         {
-            _start = _current;
+            Start = Current;
             ScanToken();
         }
 
-        _tokens.Add(new Token(TokenKind.Eof, "", null, _line));
-        return _tokens;
+        Tokens.Add(new Token(TokenKind.Eof, "", null, Line));
+        return Tokens;
     }
 
     private void ScanToken()
@@ -78,7 +78,7 @@ public class Scanner : IScanner
                 break;
 
             case '\n':
-                _line++;
+                Line++;
                 break;
 
             case '"':
@@ -92,7 +92,7 @@ public class Scanner : IScanner
                     break;
                 }
 
-                Lox.Error(_line, $"Unexpected character: '{c}'.");
+                Lox.Error(Line, $"Unexpected character: '{c}'.");
                 break;
         }
     }
@@ -101,13 +101,13 @@ public class Scanner : IScanner
     {
         while (Peek() != '"' && !IsAtEnd())
         {
-            if (Peek() == '\n') _line++;
+            if (Peek() == '\n') Line++;
             Advance();
         }
 
         if (IsAtEnd())
         {
-            Lox.Error(_line, $"Unterminated string.");
+            Lox.Error(Line, $"Unterminated string.");
             return;
         }
 
@@ -115,7 +115,7 @@ public class Scanner : IScanner
         Advance();
 
         // Get text inside quotes
-        var str = _source.Substring(_start + 1, _current - _start - 1);
+        var str = Source.Substring(Start + 1, Current - Start - 1);
         AddToken(TokenKind.String, str);
     }
 
@@ -133,16 +133,16 @@ public class Scanner : IScanner
                 Advance();
         }
 
-        var numStr = _source.Substring(_start, _current - _start);
+        var numStr = Source.Substring(Start, Current - Start);
         var num = double.Parse(numStr);
         AddToken(TokenKind.Number, num);
     }
 
     private void AddToken(TokenKind kind, object? literal = null)
     {
-        var text = _source.Substring(_start, _current - _start);
-        var token = new Token(kind, text, literal, _line);
-        _tokens.Add(token);
+        var text = Source.Substring(Start, Current - Start);
+        var token = new Token(kind, text, literal, Line);
+        Tokens.Add(token);
     }
 
     private bool Match(char expected)
@@ -154,12 +154,12 @@ public class Scanner : IScanner
         return true;
     }
 
-    private char Advance() => _source[_current++];
+    private char Advance() => Source[Current++];
 
-    private char Peek() => IsAtEnd() ? '\0' : _source[_current];
-    private char PeekNext() => _current + 1 >= _source.Length ? '\0' : _source[_current + 1];
+    private char Peek() => IsAtEnd() ? '\0' : Source[Current];
+    private char PeekNext() => Current + 1 >= Source.Length ? '\0' : Source[Current + 1];
 
-    private bool IsAtEnd() => _current >= _source.Length;
+    private bool IsAtEnd() => Current >= Source.Length;
 
     private static bool IsDigit(char c) => c is >= '0' and <= '9';
 }
