@@ -48,6 +48,7 @@ public enum TokenKind
     Return,
     Super,
     This,
+    Fun,
     Var,
     For,
     While,
